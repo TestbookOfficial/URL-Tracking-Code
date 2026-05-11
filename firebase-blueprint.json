@@ -1,0 +1,20 @@
+{
+  "entities": {
+    "TrackingUrlList": {
+      "title": "Tracking URL List",
+      "description": "Store a list of tracker URLs",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "urls": { "type": "array" }
+      },
+      "required": ["uid", "urls"]
+    }
+  },
+  "firestore": {
+    "/user_trackers/{uid}": {
+      "schema": "TrackingUrlList",
+      "description": "User specific list of tracked URLs"
+    }
+  }
+}

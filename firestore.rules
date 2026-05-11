@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Denial
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() { return request.auth != null; }
+    function isValidId(id) { return id is string && id.size() <= 128; }
+
+    function isValidTrackingUrlList(data) {
+        return data.urls is list && data.urls.size() <= 100;
+    }
+
+    match /user_trackers/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if isSignedIn() && request.auth.uid == uid && isValidId(uid) && isValidTrackingUrlList(request.resource.data);
+    }
+  }
+}

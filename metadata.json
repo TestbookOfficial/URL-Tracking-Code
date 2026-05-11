@@ -1,0 +1,6 @@
+{
+  "name": "Tracking URL Detector",
+  "description": "An AI-powered tool to bulk check web pages for the presence of specific tracking URLs in their source code.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
