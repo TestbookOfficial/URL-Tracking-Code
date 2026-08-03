@@ -14,6 +14,7 @@ export default function App() {
   const [pages, setPages] = useState<string[]>([]);
   const [multiPageUrls, setMultiPageUrls] = useState<string>('');
   const [trackingUrls, setTrackingUrls] = useState<string>('');
+  const [matchType, setMatchType] = useState<'any' | 'all'>('all');
   const [results, setResults] = useState<{ url: string; status: string; foundUrls: string[]; statusCode?: number }[]>([]);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -79,7 +80,7 @@ export default function App() {
     const processBatch = async (batch: string[]) => {
       const batchResults = await Promise.all(batch.map(async (pageUrl) => {
         try {
-          const response = await axios.post('/api/check-urls', { pageUrl, trackingUrls: urlsToCheck });
+          const response = await axios.post('/api/check-urls', { pageUrl, trackingUrls: urlsToCheck, matchType });
           return {
             url: pageUrl,
             status: response.data.present ? 'Present' : 'Not Present',
@@ -164,6 +165,32 @@ export default function App() {
           className="w-full h-32 p-2 border border-slate-300 rounded-md"
           placeholder="Enter tracking URLs here (one per line). These will be automatically saved in your browser for future sessions."
         />
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-medium">Match Condition:</label>
+        <div className="flex gap-4">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input 
+              type="radio" 
+              value="any" 
+              checked={matchType === 'any'} 
+              onChange={() => setMatchType('any')} 
+              className="text-blue-600"
+            />
+            Match ANY tracking URL (OR)
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input 
+              type="radio" 
+              value="all" 
+              checked={matchType === 'all'} 
+              onChange={() => setMatchType('all')} 
+              className="text-blue-600"
+            />
+            Match ALL tracking URLs (AND)
+          </label>
+        </div>
       </div>
 
       <div className="flex gap-4">

@@ -17,25 +17,40 @@ async function startServer() {
   // API route to check for tracking URLs
   app.post("/api/check-urls", async (req, res) => {
     const { pageUrl, trackingUrls } = req.body;
+    
+    let validUrl = "";
     try {
-      const response = await axios.get(pageUrl, {
+      validUrl = new URL(pageUrl).toString();
+    } catch (e) {
+      console.error(`Invalid URL provided: ${pageUrl}`);
+      return res.status(400).json({ error: "Invalid URL", statusCode: 400 });
+    }
+
+    try {
+      const response = await axios.get(validUrl, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         },
-        timeout: 10000
+        timeout: 30000
       });
       const sourceCode = response.data;
       const foundUrls = (trackingUrls as string[]).filter((url: string) => sourceCode.includes(url));
+      
+      const present = req.body.matchType === 'all' 
+        ? foundUrls.length === (trackingUrls as string[]).length && foundUrls.length > 0
+        : foundUrls.length > 0;
+
       res.json({
-        present: foundUrls.length > 0,
+        present,
         foundUrls,
+        statusCode: response.status
       });
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error(`Axios Error for ${pageUrl}: ${error.message}, Status: ${error.response?.status}`);
-        res.status(error.response?.status || 500).json({ error: error.message, statusCode: error.response?.status });
+        console.error(`Axios Error for ${validUrl}: ${error.message}, Status: ${error.response?.status}`);
+        res.status(error.response?.status || 500).json({ error: error.message, statusCode: error.response?.status || (error.code === 'ECONNABORTED' ? 408 : 500) });
       } else {
-        console.error(`Error for ${pageUrl}:`, error);
+        console.error(`Error for ${validUrl}:`, error);
         res.status(500).json({ error: "Failed to fetch page source", statusCode: 500 });
       }
     }
